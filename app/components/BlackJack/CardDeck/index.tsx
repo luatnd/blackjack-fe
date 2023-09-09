@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Typography from "@mui/material/Typography";
+import {styled} from "@mui/system";
 
 import {CardBack} from '../Hand/Card'
-import {styled} from "@mui/system";
+import CardBackTranslate from './CardBackTranslate'
+
 
 export const CardDeckWrapper = styled('div')({
   padding: 30,
@@ -18,6 +19,8 @@ export function CardDeck() {
       <Typography align="center">
         -- cards left
       </Typography>
+
+      <CardBackTranslate/>
     </CardDeckWrapper>
 
   )

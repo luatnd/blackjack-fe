@@ -1,3 +1,4 @@
+import React, {forwardRef} from 'react';
 import {styled} from '@mui/system';
 import Typography from "@mui/material/Typography";
 import Image from "next/image";
@@ -44,9 +45,14 @@ export function Card(props: Props) {
     )
 }
 
+// eslint-disable-next-line react/display-name
+// export const CardBack = forwardRef((props: React.ComponentProps<any>, ref: any) => {
 export function CardBack() {
   return (
-    <CardWrapper style={{border: "none", padding: 0}}>
+    <CardWrapper
+      // ref={ref}
+      style={{border: "none", padding: 0}}
+    >
       <Image
         src={ImgCardBackBg} alt="table"
         width={125} height={175}
@@ -54,6 +60,7 @@ export function CardBack() {
     </CardWrapper>
   )
 }
+// )
 
 function cardStyle(card: Card): string[] {
   switch (card.variant) {
