@@ -7,7 +7,7 @@ import Footer from "./Footer";
 
 export default function ContainerLayout({children}: PropsWithChildren<{}>) {
   return (
-    <>
+    <div id="MainContainer">
       <Header />
       <Container maxWidth="lg">
         {children}
@@ -16,6 +16,6 @@ export default function ContainerLayout({children}: PropsWithChildren<{}>) {
         title="Footer"
         description="Something here to give the footer a purpose!"
       />
-    </>
+    </div>
   )
 }

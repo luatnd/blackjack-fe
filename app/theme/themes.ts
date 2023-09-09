@@ -1,6 +1,35 @@
 "use client";
 import {createTheme, Shadows} from "@mui/material/styles";
 
+export const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#ff63da"
+    },
+  },
+  typography: {
+    allVariants: {
+      color: "#ffd8b9"
+    },
+  },
+  // shadows: Array(25).fill("none") as Shadows,
+  components: {
+    MuiTypography: {
+      styleOverrides: {
+        noWrap, // Support multiple line ellipsis
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          background: "rgba(20,20,20,0.8)"
+        }
+      }
+    }
+  },
+})
+
 export const lightTheme = createTheme({
   palette: {
     mode: "light",
@@ -12,18 +41,21 @@ export const lightTheme = createTheme({
   components: {
     MuiTypography: {
       styleOverrides: {
-        // Support multiple line ellipsis
-        noWrap(styles) {
-          return {
-            whiteSpace: "initial",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "-webkit-box",
-            WebkitLineClamp: String(styles.ownerState['data-lines'] || '1'),
-            WebkitBoxOrient: "vertical",
-          }
-        },
+        noWrap, // Support multiple line ellipsis
       },
     },
   },
 });
+
+
+// Support multiple line ellipsis
+function noWrap(styles: any): any {
+  return {
+    whiteSpace: "initial",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    display: "-webkit-box",
+    WebkitLineClamp: String(styles.ownerState['data-lines'] || '1'),
+    WebkitBoxOrient: "vertical",
+  }
+}

@@ -31,3 +31,7 @@ a {
 /*    background: black;*/
 /*  }*/
 /*}*/
+
+#MainContainer {
+  background: url("/img/casino-bg.jpg");
+}

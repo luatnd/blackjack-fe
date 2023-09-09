@@ -23,6 +23,7 @@ const nextConfig = {
   // which contains the HTML/CSS/JS assets for your application.
   // so we don't need `next export` anymore if we use this option
   output: "export",
+  images: { unoptimized: true }, // static web has no server to optimize the img, and the img is already optimized by designer/dev, should not do any machine optimized
 }
 
 module.exports = nextConfig
