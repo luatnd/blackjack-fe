@@ -22,14 +22,15 @@ type Props = {
   card: Card,
 }
 
-export function Card(props: Props) {
+// eslint-disable-next-line react/display-name
+export const CardUI = forwardRef((props: Props, ref: any) => {
   const {card} = props;
   const [varUi, color] = cardStyle(card)
 
   return card.backFace
-    ? <CardBack />
+    ? <CardBack /> // don't need to set ref because CardBack is always the 1st card
     : (
-      <CardWrapper>
+      <CardWrapper ref={ref}>
         <Typography color={color} fontSize={24}>{card.face}</Typography>
         <Typography color={color} fontSize={26} lineHeight={0.5}>
           {varUi}
@@ -43,7 +44,7 @@ export function Card(props: Props) {
         </Box>
       </CardWrapper>
     )
-}
+})
 
 // eslint-disable-next-line react/display-name
 // export const CardBack = forwardRef((props: React.ComponentProps<any>, ref: any) => {

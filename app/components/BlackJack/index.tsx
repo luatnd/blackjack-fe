@@ -64,8 +64,8 @@ export default function BlackJack() {
           />
 
           <Box>
-            {players.map(i => (
-              <Hand key={i.user_id} player={i} cards={i.hand.cards}/>
+            {players.map((i, idx) => (
+              <Hand key={i.user_id} handIdx={idx} player={i} cards={i.hand.cards}/>
             ))}
           </Box>
 
@@ -80,7 +80,7 @@ export default function BlackJack() {
 
       <Paper sx={{p: 3, my: 3}} variant="outlined">
         <Typography variant="h5">
-          Histories
+          Histories <small>(of this session)</small>
         </Typography>
       </Paper>
     </>
