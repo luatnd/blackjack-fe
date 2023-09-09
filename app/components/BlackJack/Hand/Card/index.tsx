@@ -1,10 +1,10 @@
-import {ReactElement} from "react";
 import {styled} from '@mui/system';
 import Typography from "@mui/material/Typography";
-import ImgCardBg from "@/assets/img/card-front.png";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 
+import ImgCardBg from "@/assets/img/card-front.png";
+import ImgCardBackBg from "@/assets/img/card-back.webp";
 import {CardVariant, Card} from './model'
 
 const CardWrapper = styled('div')({
@@ -25,19 +25,32 @@ export function Card(props: Props) {
   const {card} = props;
   const [varUi, color] = cardStyle(card)
 
+  return card.backFace
+    ? <CardBack />
+    : (
+      <CardWrapper>
+        <Typography color={color} fontSize={24}>{card.face}</Typography>
+        <Typography color={color} fontSize={26} lineHeight={0.5}>
+          {varUi}
+        </Typography>
+        <Box textAlign="center">
+          <Image
+            src={ImgCardBg} alt="table"
+            width={60} height={60}
+            style={{width: "100%", height: "auto"}}
+          />
+        </Box>
+      </CardWrapper>
+    )
+}
+
+export function CardBack() {
   return (
-    <CardWrapper>
-      <Typography color={color} fontSize={24}>{card.face}</Typography>
-      <Typography color={color} fontSize={26} lineHeight={0.5}>
-        {varUi}
-      </Typography>
-      <Box textAlign="center">
-        <Image
-          src={ImgCardBg} alt="table"
-          width={60} height={60}
-          style={{width: "100%", height: "auto"}}
-        />
-      </Box>
+    <CardWrapper style={{border: "none", padding: 0}}>
+      <Image
+        src={ImgCardBackBg} alt="table"
+        width={125} height={175}
+      />
     </CardWrapper>
   )
 }

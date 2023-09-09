@@ -7,18 +7,21 @@ import Typography from "@mui/material/Typography";
 import ImgBlackPink from '@/assets/img/blackpink.png'
 import ImgBlackJack from '@/assets/img/blackjack-bg.jpg'
 import {Hand} from "./Hand";
+import {CardDeck} from "./CardDeck";
 import {Player} from "./model";
 import {CardVariant as V} from "@/components/BlackJack/Hand/Card/model";
+import {PlayerActions} from "@/components/BlackJack/PlayerActions";
 
 
 export default function BlackJack() {
   const players: Player[] = [
     {
-      name: "Dealer",
+      name: "BlackPink (Dealer)",
       user_id: "ertyhjk",
       hand: {
         cards: [
-          {face: "A", variant: V.Spade, value: 1, value2: 11, deck: 0},
+          // dealer card 0 will show backface at start
+          {face: "A", variant: V.Spade, value: 1, value2: 11, deck: 0, backFace: true},
           {face: "J", variant: V.Diamond, value: 10, deck: 0},
         ]
       }
@@ -34,9 +37,6 @@ export default function BlackJack() {
       }
     },
   ]
-
-  const dealer = players.length > 0 ? players[0] : undefined
-  const player1 = players.length > 1 ? players[1] : undefined
 
   return (
     <>
@@ -69,17 +69,13 @@ export default function BlackJack() {
             ))}
           </Box>
 
-          <h1 style={{
-            position: "absolute", top: 0, right: 0,
-          }}>decks 52</h1>
+          <Box style={{position: "absolute", top: 0, right: 0,}}>
+            <CardDeck/>
+          </Box>
         </Box>
 
         {/* Player actions */}
-        <Stack direction="row" spacing={2} alignItems="flex-start">
-          <p>hit hit </p>
-          <h5>stay</h5>
-          <h5>new match</h5>
-        </Stack>
+        <PlayerActions/>
       </Paper>
 
       <Paper sx={{p: 3, my: 3}} variant="outlined">
