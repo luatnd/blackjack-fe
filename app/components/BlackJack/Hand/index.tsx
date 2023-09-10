@@ -1,9 +1,6 @@
-import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 
 import {CardUI} from "./Card";
-import {Card} from "./Card/model";
-import {Player} from "../model";
 import Typography from "@mui/material/Typography";
 import {styled} from "@mui/system";
 import {NonReactiveData} from "@/components/BlackJack/non-reactive-data";
@@ -25,6 +22,11 @@ export function Hand(props: Props) {
   const {hand, playerName} = props;
   const {cards, handIdx} = hand;
 
+  console.info('{Hand} render: debug: ', {
+    name: playerName,
+    point: HandBackend.from(hand).point,
+  });
+
   return (
     <HandWrapper>
       <Typography variant="h6">
@@ -43,12 +45,12 @@ export function Hand(props: Props) {
         })}
       </Stack>
 
-      <div className="debug-hand">
-        <p><b>Debug</b></p>
-        <p>{JSON.stringify({
-          point: HandBackend.from(hand).point,
-        })}</p>
-      </div>
+      {/*<div className="debug-hand">*/}
+      {/*  <p><b>Debug</b></p>*/}
+      {/*  <p>{JSON.stringify({*/}
+      {/*    point: HandBackend.from(hand).point,*/}
+      {/*  })}</p>*/}
+      {/*</div>*/}
     </HandWrapper>
   )
 }

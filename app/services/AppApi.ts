@@ -67,6 +67,14 @@ async function handleResponse(r: Response, type = 'json'): Promise<AppResponse> 
     }
   }
 
+  if (body.errorCode) {
+    return {
+      ok: false,
+      errors: [{[body.errorCode]: body.message}],
+      body: body,
+    }
+  }
+
   return {
     ok: true,
     body,

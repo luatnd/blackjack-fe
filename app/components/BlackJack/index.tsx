@@ -43,7 +43,7 @@ export default function BlackJack() {
     }
 
     return [dealer, player]
-  }, [match])
+  }, [match?.dealerHand, match?.playerHand])
 
   console.log('{BlackJack:render} match: ', match);
 

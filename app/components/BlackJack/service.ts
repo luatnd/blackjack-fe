@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {toast} from 'react-toastify';
 import moment from 'moment';
+import {throttle} from "throttle-debounce";
 
 import {GameMatch, MatchStatus} from "@/components/BlackJack/model";
 import {get, patch, post} from "@/services/AppApi";
@@ -60,7 +61,8 @@ export function useMatch(): {
       return
     }
 
-    playerHit().then(async (r) => {
+    console.log('{trigger hit} : ', );
+    playerHit(match.id).then(async (r) => {
       // update player card
       if (!r) {
         console.error("Cannot get hit info")
@@ -74,6 +76,8 @@ export function useMatch(): {
         setAllowHit(false)
         setAllowStay(false)
       }
+
+      // TODO: handle multiple card alloc
 
       // visual: animate new card to user deck
       await addCardsWithAnimation(1, r, match, setMatch)
@@ -99,7 +103,7 @@ export function useMatch(): {
       return
     }
 
-    playerStay().then(async (r) => {
+    playerStay(match.id).then(async (r) => {
       if (!r) {
         console.error("Cannot get stay info")
         return
@@ -128,6 +132,7 @@ export function useMatch(): {
 
 
   const createNewMatch = useCallback(async () => {
+    toast.dismiss() // hide all msg on new match
     playerCreateMatch().then((r) => {
       if (!r) {
         console.error("Cannot playerCreateMatch")
@@ -188,8 +193,10 @@ export function useMatch(): {
     match,
 
     createNewMatch,
-    hit,
-    stay,
+
+    // allow triggering hit & stay with 1 rps rate
+    hit: throttle(1000, hit, {noTrailing: true}),
+    stay: throttle(1000, stay, {noTrailing: true}),
 
     allowHit,
     allowStay,
@@ -218,8 +225,8 @@ async function playerCreateMatch(): Promise<GameMatch | undefined> {
   return r.body
 }
 
-async function playerHit(): Promise<GameMatch | undefined> {
-  const r = await patch('/api/v1/blackjack/hit');
+async function playerHit(matchId: string): Promise<GameMatch | undefined> {
+  const r = await patch(`/api/v1/blackjack/match/${matchId}/hit`);
   console.log('{playerHit} r: ', r);
   if (!r.ok) {
     return undefined
@@ -228,8 +235,8 @@ async function playerHit(): Promise<GameMatch | undefined> {
   return r.body
 }
 
-async function playerStay(): Promise<GameMatch | undefined> {
-  const r = await patch('/api/v1/blackjack/stay');
+async function playerStay(matchId: string): Promise<GameMatch | undefined> {
+  const r = await patch(`/api/v1/blackjack/match/${matchId}/stay`);
   console.log('{playerStay} r: ', r);
   if (!r.ok) {
     return undefined
