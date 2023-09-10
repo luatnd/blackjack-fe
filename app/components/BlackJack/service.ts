@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {toast} from 'react-toastify';
 
 import {GameMatch, MatchStatus, Player} from "@/components/BlackJack/model";
-import {get, patch} from "@/services/AppApi";
+import {get, patch, post} from "@/services/AppApi";
 import {Card} from "@/components/BlackJack/Hand/Card/model";
 import {CARD_ANIM_TIME, CARD_HIDE_TIME_OFFSET} from "@/components/BlackJack/CardDeck/CardBackTranslate";
 import {BlackJackPubSub} from "@/components/BlackJack/pub-sub";
@@ -34,7 +34,6 @@ export function useMatch(): {
   const [allowStay, setAllowStay] = useState(true)
   const [allowCreate, setAllowCreate] = useState(true)
 
-  const createNewMatch = useCallback(async () => {}, []);
 
   const onMatchEnd = useCallback(() => {
     console.log('{onMatchEnd} : ', );
@@ -47,7 +46,10 @@ export function useMatch(): {
     } else {
       const dealerHand = HandBackend.from(dealer.hand)
       const playerHand = HandBackend.from(player.hand)
-      toast(`${player.hand.status} Dealer (${dealerHand.point} points), You (${playerHand.point} points)`)
+      toast(
+        `[${player.hand.status}] Dealer (${dealerHand.point} points), You (${playerHand.point} points)`,
+        { autoClose: false },
+      )
     }
 
     // count down delay for new match
@@ -132,6 +134,31 @@ export function useMatch(): {
   }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError]);
 
 
+  const createNewMatch = useCallback(async () => {
+    playerCreateMatch().then((r) => {
+      if (!r) {
+        console.error("Cannot playerCreateMatch")
+      } else {
+        setMatch(
+          r,
+          setDealer,
+          setPlayer,
+          setMatchStatus,
+          setMatchStopAt,
+          setMatchError,
+        )
+      }
+    })
+  }, [
+    setDealer,
+    setPlayer,
+    setMatchStatus,
+    setMatchStopAt,
+    setMatchError,
+  ]);
+
+
+
   useEffect(() => {
     if (!!matchError) {
       console.error("TODO: Show error", matchError)
@@ -204,6 +231,16 @@ export function useMatch(): {
 
 async function fetchUserLastMatch(): Promise<GameMatch | undefined> {
   const r = await get('/api/v1/blackjack/last-match');
+  console.log('{fetchUserLastMatch} r: ', r);
+  if (!r.ok) {
+    return undefined
+  }
+
+  return r.body
+}
+
+async function playerCreateMatch(): Promise<GameMatch | undefined> {
+  const r = await post('/api/v1/blackjack/new-match');
   console.log('{fetchUserLastMatch} r: ', r);
   if (!r.ok) {
     return undefined

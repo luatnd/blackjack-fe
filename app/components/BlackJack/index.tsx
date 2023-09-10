@@ -83,7 +83,9 @@ export default function BlackJack() {
         </Typography>
       </Paper>
 
-      <ToastContainer />
+      <ToastContainer
+        autoClose={90000}
+      />
     </>
   )
 }
