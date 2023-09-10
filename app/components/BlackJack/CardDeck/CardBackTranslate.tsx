@@ -5,6 +5,10 @@ import {isClientDevMode} from "@/utils/env";
 import {getTargetHandTranslation} from "@/components/BlackJack/CardDeck/service";
 import {BlackJackPubSub, BlackJackPubSubEvent} from "@/components/BlackJack/pub-sub";
 
+
+export const CARD_ANIM_TIME = 1; // secs
+export const CARD_HIDE_TIME_OFFSET = 1000; // in millisecs
+
 /*
  * Simulate the animation of allocating card from Deck
  * to dealer hand, player hand
@@ -21,7 +25,7 @@ export default function CardBackTranslate() {
     if (animating) {
       setTimeout(() => {
         setAnimating(false)
-      }, 1000)
+      }, CARD_ANIM_TIME + CARD_HIDE_TIME_OFFSET) // hide after time offset
     }
   }, [animating])
 
@@ -59,9 +63,10 @@ export default function CardBackTranslate() {
         // initial={{}}
         animate={to}
         transition={{
-          duration: 0.6,
+          duration: CARD_ANIM_TIME,
           // ease: "easeInOut", // can be custom curve
-          ease: [0.1, 0.75, 0.65, 0.95],
+          // ease: [0.1, 0.75, 0.65, 0.95],
+          ease: [0.16, 0.91, 0, 0.98], // super fast at begin, super slow at end
         }}
       >
         <CardBack />

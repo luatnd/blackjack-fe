@@ -1,6 +1,9 @@
 import {useCallback, useEffect, useState} from "react";
-import {GameMatch, Player} from "@/components/BlackJack/model";
-import {get} from "@/services/AppApi";
+import {GameMatch, GameMatchMeta, MatchStatus, Player} from "@/components/BlackJack/model";
+import {get, patch} from "@/services/AppApi";
+import {Card} from "@/components/BlackJack/Hand/Card/model";
+import {CARD_ANIM_TIME, CARD_HIDE_TIME_OFFSET} from "@/components/BlackJack/CardDeck/CardBackTranslate";
+import {BlackJackPubSub} from "@/components/BlackJack/pub-sub";
 
 const DEALER_USER_ID = "DEALER"
 
@@ -11,37 +14,77 @@ export function useMatch(): {
   hit: Callback,
   stay: Callback,
 } {
-  // const players = [
-  //   {
-  //     name: "BlackPink (Dealer)",
-  //     user_id: "ertyhjk",
-  //     hand: {
-  //       cards: [
-  //         // dealer card 0 will show backface at start
-  //         {face: "A", variant: V.Spade, value: 1, value2: 11, deck: 0, backFace: true},
-  //         {face: "J", variant: V.Diamond, value: 10, deck: 0},
-  //       ]
-  //     }
-  //   },
-  //   {
-  //     name: "Suzi",
-  //     user_id: "awfnlk",
-  //     hand: {
-  //       cards: [
-  //         {face: "10", variant: V.Club, value: 10, deck: 0},
-  //         {face: "6", variant: V.Heart, value: 16, deck: 0},
-  //       ]
-  //     }
-  //   },
-  // ]
-
   const [dealer, setDealer] = useState<Player | undefined>(undefined)
   const [player, setPlayer] = useState<Player | undefined>(undefined)
 
-  const createNewMatch = useCallback(() => {}, []);
-  const hit = useCallback(() => {}, []);
-  const stay = useCallback(() => {}, []);
-  // TODO
+  // GameMatchMeta contain info often change together
+  const [matchStatus, setMatchStatus] = useState(MatchStatus.PlayersTurn)
+  const [matchStopAt, setMatchStopAt] = useState(0)
+  const [matchError, setMatchError] = useState("")
+
+  const createNewMatch = useCallback(async () => {}, []);
+
+  const onMatchEnd = useCallback(() => {
+    console.log('{onMatchEnd} : ', );
+    // TODO
+    // show the result to the user
+    // count down delay for new match
+  }, [setPlayer]);
+
+  const hit = useCallback(async () => {
+    if (matchStatus !== MatchStatus.PlayersTurn) {
+      console.error("TODO: notice user that ...")
+      return
+    }
+
+    playerHit().then(r => {
+      // update player card
+      if (!r) {
+        console.error("Cannot get hit info")
+        return
+      }
+
+      setMatchStatus(r.status)
+      setMatchStopAt(r.stopAt)
+      setMatchError(r.error ?? '')
+
+      if (r.error) return;
+
+      // visual: animate new card to user deck
+      animateAddCardToPlayerHand(r.playerHand.cards, player!, setPlayer)
+    })
+  }, [setPlayer]);
+
+  const stay = useCallback(async () => {
+    if (matchStatus !== MatchStatus.PlayersTurn) {
+      console.error("TODO: notice user that ...")
+      return
+    }
+
+    playerStay().then(r => {
+      if (!r) {
+        console.error("Cannot get stay info")
+        return
+      }
+
+      setMatchStatus(r.status)
+      setMatchStopAt(r.stopAt)
+      setMatchError(r.error ?? '')
+    })
+  }, [setPlayer]);
+
+
+  // handle match status
+  useEffect(() => {
+    if (!!matchError) {
+      console.error("TODO: Show error", matchError)
+    }
+
+    // handle match end
+    if (matchStatus === MatchStatus.Completed) {
+      onMatchEnd()
+    }
+  }, [matchError, matchStatus, onMatchEnd])
 
 
   useEffect(() => {
@@ -61,15 +104,24 @@ export function useMatch(): {
         }
         setDealer(dealer)
         setPlayer(player)
+
+        setMatchStatus(r.status)
+        setMatchStopAt(r.stopAt)
+        setMatchError(r.error ?? '')
       }
     })
-  }, [setDealer, setPlayer])
+  }, [
+    setDealer, setPlayer,
+    setMatchStatus,
+    setMatchStopAt,
+    setMatchError,
+  ])
 
   return {
     players: [dealer, player],
-    createNewMatch: () => {},
-    hit: () => {},
-    stay: () => {},
+    createNewMatch,
+    hit,
+    stay,
   }
 }
 
@@ -82,4 +134,39 @@ async function fetchUserLastMatch(): Promise<GameMatch | undefined> {
   }
 
   return r.body
+}
+
+async function playerHit(): Promise<GameMatch | undefined> {
+  const r = await patch('/api/v1/blackjack/hit');
+  console.log('{playerHit} r: ', r);
+  if (!r.ok) {
+    return undefined
+  }
+
+  return r.body
+}
+
+async function playerStay(): Promise<GameMatch | undefined> {
+  const r = await patch('/api/v1/blackjack/stay');
+  console.log('{playerStay} r: ', r);
+  if (!r.ok) {
+    return undefined
+  }
+
+  return r.body
+}
+
+
+// also control the timeline + UI
+// need to custom anim curve
+function animateAddCardToPlayerHand(newCards: Card[], player: Player, setPlayer: any) {
+  // animate for a duration
+  const playerHandIdx = 1
+  BlackJackPubSub.emit('AnimateCard', playerHandIdx)
+
+  // need to show up card before transition end 100ms
+  setTimeout(() => {
+    player.hand.cards = newCards
+    setPlayer({...player})
+  }, CARD_ANIM_TIME + CARD_HIDE_TIME_OFFSET - 50)
 }

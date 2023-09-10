@@ -42,8 +42,17 @@ export async function post(uri: string, option: RequestInit = {}, skipAuth = fal
   return handleResponse(r)
 }
 
-export async function patch() {
+export async function patch(uri: string, option: RequestInit = {}, skipAuth = false) {
+  const url = API_BASE_URL + uri
+  const extraOption = {"method": "PATCH"}
+  const shallowMergedOption = {...defaultOption, ...extraOption, ...option}
+  if (!skipAuth) {
+    applyBearerAuthOpt(shallowMergedOption)
+  }
+  const r = await fetch(url, shallowMergedOption);
 
+  // handle status codes
+  return handleResponse(r)
 }
 
 async function handleResponse(r: Response, type = 'json'): Promise<AppResponse> {

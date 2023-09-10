@@ -13,7 +13,11 @@ export type GameMatch = {
   dealerHand: HandDto,
   playerHand: HandDto,
   player: { id: string, name: string },
+} & GameMatchMeta;
+
+export type GameMatchMeta = {
   status: MatchStatus,
   stopAt: number,
+  error?: string,
 }
 export enum MatchStatus {PlayersTurn, DealerTurn, Completed}
