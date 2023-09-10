@@ -17,6 +17,8 @@ export function useMatch(): {
   hit: Callback,
   stay: Callback,
 
+  delay: number,
+
   allowHit: boolean,
   allowStay: boolean,
   allowCreate: boolean,
@@ -27,6 +29,7 @@ export function useMatch(): {
   const [matchStatus, setMatchStatus] = useState(MatchStatus.PlayersTurn)
   const [matchStopAt, setMatchStopAt] = useState(0)
   const [matchError, setMatchError] = useState("")
+  const [delay, setDelay] = useState(0)
   // ----- end match state ---
 
 
@@ -94,9 +97,10 @@ export function useMatch(): {
         setMatchStatus,
         setMatchStopAt,
         setMatchError,
+        setDelay,
       )
     })
-  }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError]);
+  }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError, setDelay]);
 
   const stay = useCallback(async () => {
     if (matchStatus !== MatchStatus.PlayersTurn) {
@@ -129,9 +133,10 @@ export function useMatch(): {
         setMatchStatus,
         setMatchStopAt,
         setMatchError,
+        setDelay,
       )
     })
-  }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError]);
+  }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError, setDelay]);
 
 
   const createNewMatch = useCallback(async () => {
@@ -146,6 +151,7 @@ export function useMatch(): {
           setMatchStatus,
           setMatchStopAt,
           setMatchError,
+          setDelay,
         )
       }
     })
@@ -155,6 +161,7 @@ export function useMatch(): {
     setMatchStatus,
     setMatchStopAt,
     setMatchError,
+    setDelay,
   ]);
 
 
@@ -206,6 +213,7 @@ export function useMatch(): {
           setMatchStatus,
           setMatchStopAt,
           setMatchError,
+          setDelay,
         )
       }
     })
@@ -214,6 +222,7 @@ export function useMatch(): {
     setMatchStatus,
     setMatchStopAt,
     setMatchError,
+    setDelay,
   ])
 
   return {
@@ -221,6 +230,8 @@ export function useMatch(): {
     createNewMatch,
     hit,
     stay,
+
+    delay,
 
     allowHit,
     allowStay,
@@ -277,6 +288,7 @@ function setMatch(
   setMatchStatus: any,
   setMatchStopAt: any,
   setMatchError: any,
+  setDelay: any,
 ) {
   const dealer = {
     name: "BlackPink (Dealer)",
@@ -293,6 +305,7 @@ function setMatch(
   setMatchStatus(r.status)
   setMatchStopAt(r.stopAt)
   setMatchError(r.error ?? '')
+  setDelay(r.delay)
 }
 
 

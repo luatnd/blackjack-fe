@@ -20,6 +20,7 @@ export default function BlackJack() {
     createNewMatch,
     hit,
     stay,
+    delay,
     allowHit,
     allowStay,
     allowCreate,
@@ -74,6 +75,7 @@ export default function BlackJack() {
           hit={hit} allowHit={allowHit}
           stay={stay} allowStay={allowStay}
           createNewMatch={createNewMatch} allowCreate={allowCreate}
+          delay={delay}
         />
       </Paper>
 

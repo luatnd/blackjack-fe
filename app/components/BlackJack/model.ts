@@ -19,5 +19,6 @@ export type GameMatchMeta = {
   status: MatchStatus,
   stopAt: number,
   error?: string,
+  delay?: number, // delay between match in seconds
 }
 export enum MatchStatus {PlayersTurn, DealerTurn, Completed}
