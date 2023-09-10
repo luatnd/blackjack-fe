@@ -6,6 +6,10 @@ type Props = {
   createNewMatch: () => void,
   hit: () => void,
   stay: () => void,
+
+  allowHit: boolean,
+  allowStay: boolean,
+  allowCreate: boolean,
 }
 export function PlayerActions(props: Props) {
   return (
@@ -13,13 +17,13 @@ export function PlayerActions(props: Props) {
       direction="row" spacing={2} alignItems="flex-start" justifyContent="center"
       sx={{mt: 3}}
     >
-      <Button onClick={props.hit} variant="contained" startIcon={<SportsKabaddi />}>
+      <Button onClick={props.hit} disabled={!props.allowHit} variant="contained" startIcon={<SportsKabaddi />}>
         Hit
       </Button>
-      <Button onClick={props.stay} variant="contained" startIcon={<StyleOutlined />}>
+      <Button onClick={props.stay} disabled={!props.allowStay} variant="contained" startIcon={<StyleOutlined />}>
         Stay
       </Button>
-      <Button onClick={props.createNewMatch} disabled={true} variant="contained" startIcon={<AddOutlined />}>
+      <Button onClick={props.createNewMatch} disabled={!props.allowCreate} variant="contained" startIcon={<AddOutlined />}>
         New Match (00:00)
       </Button>
     </Stack>

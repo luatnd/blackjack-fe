@@ -3,6 +3,9 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+
 import ImgBlackPink from '@/assets/img/blackpink.png'
 import ImgBlackJack from '@/assets/img/blackjack-bg.jpg'
 import {Hand} from "./Hand";
@@ -17,10 +20,13 @@ export default function BlackJack() {
     createNewMatch,
     hit,
     stay,
+    allowHit,
+    allowStay,
+    allowCreate,
   } = useMatch()
 
 
-  console.log('{BlackJack} players: ', players);
+  console.log('{BlackJack:render} players: ', players);
 
   return (
     <>
@@ -65,9 +71,9 @@ export default function BlackJack() {
 
         {/* Player actions */}
         <PlayerActions
-          hit={hit}
-          stay={stay}
-          createNewMatch={createNewMatch}
+          hit={hit} allowHit={allowHit}
+          stay={stay} allowStay={allowStay}
+          createNewMatch={createNewMatch} allowCreate={allowCreate}
         />
       </Paper>
 
@@ -76,6 +82,8 @@ export default function BlackJack() {
           Histories <small>(of this session)</small>
         </Typography>
       </Paper>
+
+      <ToastContainer />
     </>
   )
 }
