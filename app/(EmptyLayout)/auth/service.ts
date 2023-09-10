@@ -9,6 +9,7 @@ import {authStore} from "./store";
 import {AuthDAO, AuthDataSource} from "./dao";
 import {SimpleTaskManager} from "@/services/SimpleTaskManager";
 import {isClientDevMode} from "@/utils/env";
+import {pick} from "next/dist/lib/pick";
 
 export function useLoginInfo(): {
   email: string,
@@ -34,7 +35,7 @@ export function useLoginHandler() {
     const email = data.get('email')?.toString() || "";
     const password = data.get('password')?.toString() || "";
 
-    console.debug('{logging in} email, password: ', email, password);
+    // console.log('{logging in} email, password: ', email, password);
     const auth = await loginByUsernamePw(email, password)
     if (auth) {
       authStore.setState('currentAuth', auth);
@@ -79,15 +80,21 @@ async function loginByUsernamePw(un: string, pw: string): Promise<Auth | undefin
   Demo logic:
     if user is not exist in our system
       => register and log them in
-    else: login with username (without password)
    */
+
+  await register(un, pw)
+
   let auth = await fetchUser(un, pw);
+  if (!auth) {
+    return undefined
+  }
+
+  auth = {
+    ...auth,
+    user: pick(auth.user, ['id', 'email', 'firstName', 'lastName'])
+  }
   AuthCache.set(auth)
   if (auth) return auth
-
-  auth =  await register(un, pw)
-  AuthCache.set(auth)
-  return auth
 }
 
 export const logOutTaskManager = new SimpleTaskManager();
@@ -103,7 +110,7 @@ if (isClientDevMode) {
 
 // Register with backend
 async function register(un: string, pw: string): Promise<Auth | undefined> {
-  const dao = new AuthDAO(AuthDataSource.Local)
+  const dao = new AuthDAO(AuthDataSource.REST)
   const u = await dao.createUser(un, pw)
 
   if (!u) return undefined
@@ -116,13 +123,17 @@ async function register(un: string, pw: string): Promise<Auth | undefined> {
 
 // fetch from backend
 async function fetchUser(un: string, pw: string): Promise<Auth | undefined> {
-  const dao = new AuthDAO(AuthDataSource.Local)
+  const dao = new AuthDAO(AuthDataSource.REST)
   const u = await dao.getUser(un, pw)
 
   if (!u) return undefined
   return {
-    token: "",
-    refresh_token: "",
+    // @ts-ignore
+    token: u.token,
+    // @ts-ignore
+    refresh_token: u.refreshToken,
+    // @ts-ignore
+    token_expire_at: u.tokenExpires,
     user: u,
   }
 }
