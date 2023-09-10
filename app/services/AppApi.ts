@@ -56,7 +56,12 @@ export async function patch(uri: string, option: RequestInit = {}, skipAuth = fa
 }
 
 async function handleResponse(r: Response, type = 'json'): Promise<AppResponse> {
-  const body = await r.json()
+  let body;
+  try {
+    body = await r.json()
+  } catch (e) {
+    body = {}
+  }
   // console.log('{handleResponse} body: ', body);
 
   if (r.status >= 400) {
