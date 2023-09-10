@@ -9,7 +9,9 @@ export type Player = {
 }
 
 // -- from backend
+// main data
 export type GameMatch = {
+  id: string,
   dealerHand: HandDto,
   playerHand: HandDto,
   player: { id: string, name: string },

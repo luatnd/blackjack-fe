@@ -1,35 +1,32 @@
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {toast} from 'react-toastify';
+import moment from 'moment';
 
-import {GameMatch, MatchStatus, Player} from "@/components/BlackJack/model";
+import {GameMatch, MatchStatus} from "@/components/BlackJack/model";
 import {get, patch, post} from "@/services/AppApi";
 import {Card} from "@/components/BlackJack/Hand/Card/model";
 import {CARD_ANIM_TIME, CARD_HIDE_TIME_OFFSET} from "@/components/BlackJack/CardDeck/CardBackTranslate";
 import {BlackJackPubSub} from "@/components/BlackJack/pub-sub";
 import {Hand as HandBackend} from './Hand/debug/Hand'
+import {sleep} from "@/utils/time";
 
-const DEALER_USER_ID = "DEALER"
+export const DEALER_USER_ID = "DEALER"
 
 type Callback = any;
 export function useMatch(): {
-  players: (Player|undefined)[],
+  match: GameMatch | undefined,
+
   createNewMatch: Callback,
   hit: Callback,
   stay: Callback,
-
-  delay: number,
 
   allowHit: boolean,
   allowStay: boolean,
   allowCreate: boolean,
 } {
   // ----- match state ---
-  const [dealer, setDealer] = useState<Player | undefined>(undefined)
-  const [player, setPlayer] = useState<Player | undefined>(undefined)
-  const [matchStatus, setMatchStatus] = useState(MatchStatus.PlayersTurn)
-  const [matchStopAt, setMatchStopAt] = useState(0)
-  const [matchError, setMatchError] = useState("")
-  const [delay, setDelay] = useState(0)
+  const [match, setMatch] = useState<GameMatch | undefined>(undefined)
+  const matchStatus = useMemo(() => match?.status, [match])
   // ----- end match state ---
 
 
@@ -38,29 +35,27 @@ export function useMatch(): {
   const [allowCreate, setAllowCreate] = useState(true)
 
 
-  const onMatchEnd = useCallback(() => {
+  const onMatchEnd = useCallback((match: GameMatch) => {
     console.log('{onMatchEnd} : ', );
+    if (matchStatus !== MatchStatus.Completed) return;
 
     // anim the rest card to the dealer => was handled right after calling api
 
     // show the result to the user
-    if (!dealer || !player) {
-      console.error("This should not happen: dealer/player empty on match end: ", dealer, player)
-    } else {
-      const dealerHand = HandBackend.from(dealer.hand)
-      const playerHand = HandBackend.from(player.hand)
-      toast(
-        `[${player.hand.status}] Dealer (${dealerHand.point} points), You (${playerHand.point} points)`,
-        { autoClose: false },
-      )
-    }
+    const dealerHand = HandBackend.from(match.dealerHand)
+    const playerHand = HandBackend.from(match.playerHand)
 
-    // count down delay for new match
-    // TODO:
-  }, [dealer, player]); // no dependency
+    toast.dismiss() // close all prev toast
+    toast(
+      `[${match.playerHand.status}] `
+      + `Dealer (${dealerHand.point} points), You (${playerHand.point} points) | `
+      + `at ${moment().format("HH:mm:ss")}`,
+      { autoClose: false },
+    )
+  }, [matchStatus]);
 
   const hit = useCallback(async () => {
-    if (matchStatus !== MatchStatus.PlayersTurn) {
+    if (match?.status !== MatchStatus.PlayersTurn) {
       console.error("TODO: notice user that ...")
       return
     }
@@ -73,37 +68,33 @@ export function useMatch(): {
       }
 
       if (!!r.error) return;
-      if (!player) {
-        console.error("Skip to add card because of empty player")
-        return
+
+      if (r.status === MatchStatus.Completed) {
+        // tmp disable button while anim
+        setAllowHit(false)
+        setAllowStay(false)
       }
 
       // visual: animate new card to user deck
-      await addCardsWithAnimation(1, player.hand.cards, r.playerHand.cards, player, setPlayer)
+      await addCardsWithAnimation(1, r, match, setMatch)
       if (r.status === MatchStatus.Completed) {
-        if (!dealer) {
-          console.error("Skip to add card because of empty player")
-          return
-        }
         // visual: animate new card to user deck
-        await addCardsWithAnimation(0, dealer.hand.cards, r.dealerHand.cards, dealer, setDealer)
+        await addCardsWithAnimation(0, r, match, setMatch)
+      }
+      if (r.status === MatchStatus.Completed) {
+        // turn back
+        setAllowHit(true)
+        setAllowStay(true)
+        await sleep(50)
       }
 
       // update state to reflect the UI after card animation done
-      setMatch(
-        r,
-        setDealer,
-        setPlayer,
-        setMatchStatus,
-        setMatchStopAt,
-        setMatchError,
-        setDelay,
-      )
+      setMatch(r)
     })
-  }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError, setDelay]);
+  }, [match]);
 
   const stay = useCallback(async () => {
-    if (matchStatus !== MatchStatus.PlayersTurn) {
+    if (match?.status !== MatchStatus.PlayersTurn) {
       console.error("TODO: notice user that ...")
       return
     }
@@ -117,26 +108,23 @@ export function useMatch(): {
       if (!!r.error) return;
       // visual: animate new card to user deck
       if (r.status === MatchStatus.Completed) {
-        if (!dealer) {
-          console.error("Skip to add card because of empty player")
-          return
-        }
+        // tmp disable hit/stay button
+        setAllowHit(false)
+        setAllowStay(false)
+
         // visual: animate new card to user deck
-        await addCardsWithAnimation(0, dealer.hand.cards, r.dealerHand.cards, dealer, setDealer)
+        await addCardsWithAnimation(0, r, match, setMatch)
+
+        // turn back
+        setAllowHit(true)
+        setAllowStay(true)
+        await sleep(50)
       }
 
       // update state to reflect the UI after card animation done
-      setMatch(
-        r,
-        setDealer,
-        setPlayer,
-        setMatchStatus,
-        setMatchStopAt,
-        setMatchError,
-        setDelay,
-      )
+      setMatch(r)
     })
-  }, [player, setPlayer, dealer, setDealer, setMatchStatus, setMatchStopAt, setMatchError, setDelay]);
+  }, [match]);
 
 
   const createNewMatch = useCallback(async () => {
@@ -144,34 +132,19 @@ export function useMatch(): {
       if (!r) {
         console.error("Cannot playerCreateMatch")
       } else {
-        setMatch(
-          r,
-          setDealer,
-          setPlayer,
-          setMatchStatus,
-          setMatchStopAt,
-          setMatchError,
-          setDelay,
-        )
+        setMatch(r)
       }
     })
-  }, [
-    setDealer,
-    setPlayer,
-    setMatchStatus,
-    setMatchStopAt,
-    setMatchError,
-    setDelay,
-  ]);
+  }, []);
 
 
 
   useEffect(() => {
-    if (!!matchError) {
-      console.error("TODO: Show error", matchError)
+    if (!!match?.error) {
+      console.error("TODO: Show error", match?.error)
       // this is unexpected error, do not show to user
     }
-  }, [matchError])
+  }, [match])
 
   // handle match status
   useEffect(() => {
@@ -193,11 +166,11 @@ export function useMatch(): {
 
     // handle match end
     if (matchStatus === MatchStatus.Completed) {
-      onMatchEnd()
+      // ensure that this run only once, because match completed only once
+      match && onMatchEnd(match)
     }
   }, [
-    matchStatus, onMatchEnd,
-    setAllowHit, setAllowStay, setAllowCreate,
+    match, onMatchEnd,
   ])
 
 
@@ -206,32 +179,17 @@ export function useMatch(): {
       if (!r) {
         console.error("Cannot fetchUserLastMatch")
       } else {
-        setMatch(
-          r,
-          setDealer,
-          setPlayer,
-          setMatchStatus,
-          setMatchStopAt,
-          setMatchError,
-          setDelay,
-        )
+        setMatch(r)
       }
     })
-  }, [
-    setDealer, setPlayer,
-    setMatchStatus,
-    setMatchStopAt,
-    setMatchError,
-    setDelay,
-  ])
+  }, [])
 
   return {
-    players: [dealer, player],
+    match,
+
     createNewMatch,
     hit,
     stay,
-
-    delay,
 
     allowHit,
     allowStay,
@@ -281,128 +239,53 @@ async function playerStay(): Promise<GameMatch | undefined> {
 }
 
 
-function setMatch(
-  r: GameMatch,
-  setDealer: any,
-  setPlayer: any,
-  setMatchStatus: any,
-  setMatchStopAt: any,
-  setMatchError: any,
-  setDelay: any,
+async function addCardsWithAnimation(
+  handIdx: number,
+  newMatch: GameMatch | undefined,
+  oldMatch: GameMatch | undefined,
+  setMatch: any,
 ) {
-  const dealer = {
-    name: "BlackPink (Dealer)",
-    user_id: DEALER_USER_ID,
-    hand: r.dealerHand,
-  }
-  const player = {
-    name: r.player.name,
-    user_id: r.player.id,
-    hand: r.playerHand,
-  }
-  setDealer(dealer)
-  setPlayer(player)
-  setMatchStatus(r.status)
-  setMatchStopAt(r.stopAt)
-  setMatchError(r.error ?? '')
-  setDelay(r.delay)
-}
-
-
-async function addCardsWithAnimation(handIdx: number, oldCards: Card[], newCards: Card[], player: Player | undefined, setPlayer: any) {
   // player often add 1 cards
   // dealer often add multiple cards
+  let [oldCards, newCards] = handIdx == 0
+    ? [oldMatch?.dealerHand?.cards, newMatch?.dealerHand?.cards]
+    : [oldMatch?.playerHand?.cards, newMatch?.playerHand?.cards]
+
+  if (!oldCards) oldCards = [];
+  if (!newCards) newCards = [];
+
   for (let i = oldCards.length; i < newCards.length; i++) {
     const card = newCards[i]
-    await animateAddCardToPlayerHand(handIdx, card, player, setPlayer)
+    await animateAddCardToPlayerHand(handIdx, card, oldMatch, setMatch)
   }
 }
 
 // also control the timeline + UI
 // need to custom anim curve
 // @params handIdx: the index in hands arr, 0 mean dealer, 1 mean player
-async function animateAddCardToPlayerHand(handIdx: number, newCard: Card, player: Player | undefined, setPlayer: any) {
+async function animateAddCardToPlayerHand(
+  handIdx: number,
+  newCard: Card,
+  oldMatch: GameMatch | undefined,
+  setMatch: any,
+) {
   return new Promise(resolve => {
     // animate for a duration
     BlackJackPubSub.emit('AnimateCard', handIdx)
 
     // need to show up card before transition end 100ms
     setTimeout(() => {
-      if (!player) {
-        console.error("Skip anim when empty player", newCard, player)
+      if (!oldMatch) {
+        console.error("Skip anim when empty oldMatch", newCard, oldMatch)
         resolve(false)
       } else {
-        player.hand.cards.push(newCard)
-        setPlayer({...player})
+        ((handIdx === 0)
+            ? oldMatch.dealerHand
+            : oldMatch.playerHand
+        ).cards.push(newCard)
+        setMatch({...oldMatch})
         resolve(true)
       }
     }, CARD_ANIM_TIME + CARD_HIDE_TIME_OFFSET - 50)
   })
-}
-
-// TODO: handle anim to dealer cards
-const mockBodyDraw = {
-  "dealerHand": {
-    "playerId": "DEALER",
-    "handIdx": 0,
-    "cards": [
-      {
-        "deck": 0,
-        "face": "6",
-        "variant": 2,
-        "value": 6
-      },
-      {
-        "deck": 5,
-        "face": "5",
-        "variant": 0,
-        "value": 5
-      },
-      {
-        "deck": 4,
-        "face": "K",
-        "variant": 1,
-        "value": 10
-      }
-    ],
-    "status": "BlackJack"
-  },
-  "playerHand": {
-    "playerId": "6",
-    "handIdx": 1,
-    "cards": [
-      {
-        "deck": 5,
-        "face": "3",
-        "variant": 0,
-        "value": 3
-      },
-      {
-        "deck": 5,
-        "face": "7",
-        "variant": 2,
-        "value": 7
-      },
-      {
-        "deck": 4,
-        "face": "K",
-        "variant": 3,
-        "value": 10
-      },
-      {
-        "deck": 5,
-        "face": "1",
-        "variant": 2,
-        "value": 1
-      }
-    ],
-    "status": "Draw"
-  },
-  "player": {
-    "name": "u1",
-    "id": "6"
-  },
-  "status": 2,
-  "stopAt": 1694333396241,
-  "error": ""
 }

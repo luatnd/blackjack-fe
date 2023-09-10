@@ -11,23 +11,41 @@ import ImgBlackJack from '@/assets/img/blackjack-bg.jpg'
 import {Hand} from "./Hand";
 import {CardDeck} from "./CardDeck";
 import {PlayerActions} from "@/components/BlackJack/PlayerActions";
-import {useMatch} from "@/components/BlackJack/service";
+import {DEALER_USER_ID, useMatch} from "@/components/BlackJack/service";
+import {useMemo} from "react";
+import {Player} from "@/components/BlackJack/model";
 
 
 export default function BlackJack() {
   const {
-    players,
+    match,
     createNewMatch,
     hit,
     stay,
-    delay,
     allowHit,
     allowStay,
     allowCreate,
   } = useMatch()
 
 
-  console.log('{BlackJack:render} players: ', players);
+  const players: Player[] = useMemo(() => {
+    if (!match) return []
+
+    const dealer = {
+      name: "BlackPink (Dealer)",
+      user_id: DEALER_USER_ID,
+      hand: match.dealerHand,
+    }
+    const player = {
+      name: match.player.name,
+      user_id: match.player.id,
+      hand: match.playerHand,
+    }
+
+    return [dealer, player]
+  }, [match])
+
+  console.log('{BlackJack:render} match: ', match);
 
   return (
     <>
@@ -75,7 +93,7 @@ export default function BlackJack() {
           hit={hit} allowHit={allowHit}
           stay={stay} allowStay={allowStay}
           createNewMatch={createNewMatch} allowCreate={allowCreate}
-          delay={delay}
+          delay={match?.delay ?? 0}
         />
       </Paper>
 
