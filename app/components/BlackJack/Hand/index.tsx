@@ -22,10 +22,10 @@ export function Hand(props: Props) {
   const {hand, playerName} = props;
   const {cards, handIdx} = hand;
 
-  console.info('{Hand} render: debug: ', {
-    name: playerName,
-    point: HandBackend.from(hand).point,
-  });
+  // console.info('{Hand} render: debug: ', {
+  //   name: playerName,
+  //   point: HandBackend.from(hand).point,
+  // });
 
   return (
     <HandWrapper>
@@ -39,6 +39,13 @@ export function Hand(props: Props) {
             return <CardUI
               key={`${i.face}_${i.variant}_${i.deck}`} card={i}
               ref={(r: any) => NonReactiveData.handRefs[handIdx] = r}
+            />
+          }
+          else if (idx == 0) {
+            // save ref of the last cards
+            return <CardUI
+              key={`${i.face}_${i.variant}_${i.deck}`} card={i}
+              ref={(r: any) => NonReactiveData.handFirstCardRefs[handIdx] = r}
             />
           }
           return <CardUI key={`${i.face}_${i.variant}_${i.deck}`} card={i} />

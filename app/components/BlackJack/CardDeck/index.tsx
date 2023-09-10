@@ -2,7 +2,7 @@ import Typography from "@mui/material/Typography";
 import {styled} from "@mui/system";
 
 import {CardBack} from '../Hand/Card'
-import CardBackTranslate from './CardBackTranslate'
+import {CardBackTranslateSingle, CardBackTranslateStack} from './CardBackTranslate'
 import {NoSsr} from "@mui/material";
 import {NonReactiveData} from "@/components/BlackJack/non-reactive-data";
 
@@ -23,8 +23,9 @@ export function CardDeck() {
 
       {/* Animation is on client only */}
       <NoSsr>
-        <AbsoluteCardContainer ref={r => NonReactiveData.deckRef = r}>
-          <CardBackTranslate/>
+        <AbsoluteCardContainer className="TransitionCardContainer" ref={r => NonReactiveData.deckRef = r}>
+          <CardBackTranslateSingle/>
+          {/*<CardBackTranslateStack/>*/}
         </AbsoluteCardContainer>
       </NoSsr>
 

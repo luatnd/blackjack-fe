@@ -45,7 +45,7 @@ export default function BlackJack() {
     return [dealer, player]
   }, [match?.dealerHand, match?.playerHand])
 
-  console.log('{BlackJack:render} match: ', match);
+  // console.log('{BlackJack:render} match: ', match);
 
   return (
     <>

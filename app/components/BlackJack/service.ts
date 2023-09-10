@@ -5,11 +5,12 @@ import {throttle} from "throttle-debounce";
 
 import {GameMatch, MatchStatus} from "@/components/BlackJack/model";
 import {get, patch, post} from "@/services/AppApi";
-import {Card} from "@/components/BlackJack/Hand/Card/model";
-import {CARD_ANIM_TIME, CARD_HIDE_TIME_OFFSET} from "@/components/BlackJack/CardDeck/CardBackTranslate";
-import {BlackJackPubSub} from "@/components/BlackJack/pub-sub";
+import {Card, CardVariant} from "@/components/BlackJack/Hand/Card/model";
+import {CARD_ANIM_TIME, CARD_HIDE_DELAY_MS} from "@/components/BlackJack/CardDeck/CardBackTranslate";
+import {BlackJackPubSub, BlackJackPubSubEvent} from "@/components/BlackJack/pub-sub";
 import {Hand as HandBackend} from './Hand/debug/Hand'
 import {sleep} from "@/utils/time";
+import {isClientDevMode} from "@/utils/env";
 
 export const DEALER_USER_ID = "DEALER"
 
@@ -55,13 +56,27 @@ export function useMatch(): {
     )
   }, [matchStatus]);
 
+  const debugAddCard = useCallback(async (handIdx: number) => {
+    for (let i = 1; i <= 10; i++) {
+      const card: Card = {face: "" + i, variant: CardVariant.Heart, value: i, deck: Math.floor(1e6*Math.random())}
+
+      console.log(`${i} => ${i%2 ? 'Player' : 'Dealer'}`);
+      await animateAddCardToPlayerHand(i % 2, card, match, setMatch)
+      await sleep(2000);
+    }
+
+  }, [match, setMatch])
+  if (isClientDevMode) {
+    // @ts-ignore for debug
+    window.tmp__debugAddCard = debugAddCard;
+  }
+
   const hit = useCallback(async () => {
     if (match?.status !== MatchStatus.PlayersTurn) {
       console.error("TODO: notice user that ...")
       return
     }
 
-    console.log('{trigger hit} : ', );
     playerHit(match.id).then(async (r) => {
       // update player card
       if (!r) {
@@ -76,8 +91,6 @@ export function useMatch(): {
         setAllowHit(false)
         setAllowStay(false)
       }
-
-      // TODO: handle multiple card alloc
 
       // visual: animate new card to user deck
       await addCardsWithAnimation(1, r, match, setMatch)
@@ -153,7 +166,7 @@ export function useMatch(): {
 
   // handle match status
   useEffect(() => {
-    console.log('{useEffect} matchStatus: ', matchStatus);
+    // console.log('{useEffect} matchStatus: ', matchStatus);
 
     // allow hit & stay when match is hit
     if (matchStatus === MatchStatus.PlayersTurn) {
@@ -217,7 +230,7 @@ async function fetchUserLastMatch(): Promise<GameMatch | undefined> {
 
 async function playerCreateMatch(): Promise<GameMatch | undefined> {
   const r = await post('/api/v1/blackjack/new-match');
-  console.log('{fetchUserLastMatch} r: ', r);
+  console.log('{playerCreateMatch} r: ', r);
   if (!r.ok) {
     return undefined
   }
@@ -264,6 +277,7 @@ async function addCardsWithAnimation(
   for (let i = oldCards.length; i < newCards.length; i++) {
     const card = newCards[i]
     await animateAddCardToPlayerHand(handIdx, card, oldMatch, setMatch)
+    await sleep(600); // sleep every time added a card
   }
 }
 
@@ -279,6 +293,13 @@ async function animateAddCardToPlayerHand(
   return new Promise(resolve => {
     // animate for a duration
     BlackJackPubSub.emit('AnimateCard', handIdx)
+    // if (oldMatch) {
+    //   const newCardIdx = ((handIdx === 0)
+    //       ? oldMatch.dealerHand
+    //       : oldMatch.playerHand
+    //   ).cards.length;
+    //   BlackJackPubSub.emit(BlackJackPubSubEvent.AnimateMultiCard, {handIdx, cardIdx: newCardIdx})
+    // }
 
     // need to show up card before transition end 100ms
     setTimeout(() => {
@@ -293,6 +314,6 @@ async function animateAddCardToPlayerHand(
         setMatch({...oldMatch})
         resolve(true)
       }
-    }, CARD_ANIM_TIME + CARD_HIDE_TIME_OFFSET - 50)
+    }, CARD_ANIM_TIME * 1000 - 50)
   })
 }

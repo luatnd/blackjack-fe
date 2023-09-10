@@ -5,6 +5,7 @@ export const BlackJackPubSub = new Emittery();
 
 export enum BlackJackPubSubEvent {
   AnimateCard = 'AnimateCard',
+  AnimateMultiCard = 'AnimateMultiCard',
 }
 
 if (isClientDevMode) {

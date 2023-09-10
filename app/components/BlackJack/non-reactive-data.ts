@@ -10,10 +10,12 @@ export const NonReactiveData:  {
   // the DOM el of deck
   deckRef: any,
   // the DOM el of the last card of each hand
-  handRefs: any[]
+  handRefs: any[], // last cards
+  handFirstCardRefs: any[], // first cards // @deprecated do not use
 } = {
   deckRef: undefined,
-  handRefs: [undefined, undefined]
+  handRefs: [undefined, undefined],
+  handFirstCardRefs: [undefined, undefined],
 }
 
 if (isClientDevMode) {
