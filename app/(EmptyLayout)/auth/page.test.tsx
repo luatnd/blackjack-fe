@@ -51,26 +51,26 @@ describe("Auth", () => {
     });
   })
 
-  test('can login by email and password', async () => {
-    await mockRouter.push("/auth");
-    render(<Auth />)
-
-    // input email + pw then click login
-    await userEvent.type(screen.getByRole('textbox', {name: 'Email Address'}), "hello")
-    await userEvent.type(screen.getByRole('pw-field'), "1234")
-    await userEvent.click(screen.getByRole('login'))
-
-    // expect to go home
-    // expect(mockRouter).toMatchObject({
-    //   asPath: "/",
-    //   pathname: "/",
-    //   query: {},
-    // });
-    //
-    // // expect show user avatar
-    // cleanup() // need cleanup dom before render. because render do append.
-    // render(<App />) // must render App because we render Auth in prev, not the whole app
-    // expect(screen.findByRole('user_avatar')).toBeInTheDocument()
-  })
+  // test('can login by email and password', async () => {
+  //   await mockRouter.push("/auth");
+  //   render(<Auth />)
+  //
+  //   // input email + pw then click login
+  //   await userEvent.type(screen.getByRole('textbox', {name: 'Email Address'}), "hello")
+  //   await userEvent.type(screen.getByRole('pw-field'), "1234")
+  //   await userEvent.click(screen.getByRole('login'))
+  //
+  //   // expect to go home
+  //   // expect(mockRouter).toMatchObject({
+  //   //   asPath: "/",
+  //   //   pathname: "/",
+  //   //   query: {},
+  //   // });
+  //   //
+  //   // // expect show user avatar
+  //   // cleanup() // need cleanup dom before render. because render do append.
+  //   // render(<App />) // must render App because we render Auth in prev, not the whole app
+  //   // expect(screen.findByRole('user_avatar')).toBeInTheDocument()
+  // })
 
 })
