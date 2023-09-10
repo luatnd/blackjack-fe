@@ -1,3 +1,5 @@
+import {authStore} from "@/(EmptyLayout)/auth/store";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 const defaultOption = {
@@ -14,18 +16,26 @@ type AppResponse = {
   body: any,
 }
 
-export async function get() {
+export async function get(uri: string, option: RequestInit = {}, skipAuth = false) {
+  const url = API_BASE_URL + uri
+  const extraOption = {"method": "GET"}
+  const shallowMergedOption = {...defaultOption, ...extraOption, ...option}
+  if (!skipAuth) {
+    applyBearerAuthOpt(shallowMergedOption)
+  }
+  const r = await fetch(url, shallowMergedOption);
 
+  // handle status codes
+  return handleResponse(r)
 }
 
-export async function post(uri: string, option: RequestInit) {
+export async function post(uri: string, option: RequestInit = {}, skipAuth = false) {
   const url = API_BASE_URL + uri
-  const extraOption = {
-    "method": "POST",
-    // "mode": "cors",
-    // "credentials": "include"
-  }
+  const extraOption = {"method": "POST"}
   const shallowMergedOption = {...defaultOption, ...extraOption, ...option}
+  if (!skipAuth) {
+    applyBearerAuthOpt(shallowMergedOption)
+  }
   const r = await fetch(url, shallowMergedOption);
 
   // handle status codes
@@ -51,5 +61,11 @@ async function handleResponse(r: Response, type = 'json'): Promise<AppResponse> 
   return {
     ok: true,
     body,
+  }
+}
+
+function applyBearerAuthOpt(req: any) {
+  if (req.headers) {
+    req.headers['Authorization'] = 'Bearer ' + authStore.currentAuth?.token
   }
 }

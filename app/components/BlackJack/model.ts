@@ -1,4 +1,4 @@
-import {Hand} from './Hand/model'
+import {Hand, HandDto} from './Hand/model'
 
 export type Player = {
   name: string
@@ -7,3 +7,13 @@ export type Player = {
   // real-life: 1 players in blackjack can play multiple hands
   hand: Hand,
 }
+
+// -- from backend
+export type GameMatch = {
+  dealerHand: HandDto,
+  playerHand: HandDto,
+  player: { id: string, name: string },
+  status: MatchStatus,
+  stopAt: number,
+}
+export enum MatchStatus {PlayersTurn, DealerTurn, Completed}

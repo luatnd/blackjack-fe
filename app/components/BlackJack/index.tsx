@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 
@@ -8,35 +7,20 @@ import ImgBlackPink from '@/assets/img/blackpink.png'
 import ImgBlackJack from '@/assets/img/blackjack-bg.jpg'
 import {Hand} from "./Hand";
 import {CardDeck} from "./CardDeck";
-import {Player} from "./model";
-import {CardVariant as V} from "@/components/BlackJack/Hand/Card/model";
 import {PlayerActions} from "@/components/BlackJack/PlayerActions";
+import {useMatch} from "@/components/BlackJack/service";
 
 
 export default function BlackJack() {
-  const players: Player[] = [
-    {
-      name: "BlackPink (Dealer)",
-      user_id: "ertyhjk",
-      hand: {
-        cards: [
-          // dealer card 0 will show backface at start
-          {face: "A", variant: V.Spade, value: 1, value2: 11, deck: 0, backFace: true},
-          {face: "J", variant: V.Diamond, value: 10, deck: 0},
-        ]
-      }
-    },
-    {
-      name: "Suzi",
-      user_id: "awfnlk",
-      hand: {
-        cards: [
-          {face: "10", variant: V.Club, value: 10, deck: 0},
-          {face: "6", variant: V.Heart, value: 16, deck: 0},
-        ]
-      }
-    },
-  ]
+  const {
+    players,
+    createNewMatch,
+    hit,
+    stay,
+  } = useMatch()
+
+
+  console.log('{BlackJack} players: ', players);
 
   return (
     <>
@@ -50,7 +34,10 @@ export default function BlackJack() {
         </Box>
 
         {/* Casino Table */}
-        <Box sx={{m: 0}} style={{ position: "relative", zIndex: 0, overflow: "hidden", paddingBottom: 30}}>
+        <Box
+          sx={{m: 0}}
+          style={{ position: "relative", zIndex: 0, overflow: "hidden", paddingBottom: 30, minHeight: 400}}
+        >
           <Image
             src={ImgBlackJack} alt="table"
             width={200} height={200}
@@ -64,9 +51,11 @@ export default function BlackJack() {
           />
 
           <Box>
-            {players.map((i, idx) => (
-              <Hand key={i.user_id} handIdx={idx} player={i} cards={i.hand.cards}/>
-            ))}
+            {players.map((i, idx) => {
+              if (!i) return null
+              // 1 player has 1 hand for this UI
+              return <Hand hand={i.hand} playerName={i.name} key={`${i.user_id}_${i.hand.handIdx}`} />
+            })}
           </Box>
 
           <Box style={{position: "absolute", top: 0, right: 0,}}>
@@ -75,7 +64,11 @@ export default function BlackJack() {
         </Box>
 
         {/* Player actions */}
-        <PlayerActions/>
+        <PlayerActions
+          hit={hit}
+          stay={stay}
+          createNewMatch={createNewMatch}
+        />
       </Paper>
 
       <Paper sx={{p: 3, my: 3}} variant="outlined">

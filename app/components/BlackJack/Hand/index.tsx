@@ -8,24 +8,27 @@ import Typography from "@mui/material/Typography";
 import {styled} from "@mui/system";
 import {NonReactiveData} from "@/components/BlackJack/non-reactive-data";
 
+import {Hand as HandBackend} from './debug/Hand'
+import {HandDto} from "@/components/BlackJack/Hand/model";
+
 const HandWrapper = styled('div')({
   padding: "10px 20px",
   marginTop: 20,
 });
 
 type Props = {
-  handIdx: number, // the index of hand, count from 0 to n, 0 is dealer's hand
-  player: Player,
-  cards: Card[],
+  playerName: string,
+  hand: HandDto,
 }
 
 export function Hand(props: Props) {
-  const {cards, player, handIdx} = props;
+  const {hand, playerName} = props;
+  const {cards, handIdx} = hand;
 
   return (
     <HandWrapper>
       <Typography variant="h6">
-        {player.name}
+        {playerName}
       </Typography>
       <Stack spacing={-10} direction="row" sx={{mt: 1}}>
         {cards.map((i, idx) => {
@@ -39,6 +42,13 @@ export function Hand(props: Props) {
           return <CardUI key={`${i.face}_${i.variant}_${i.deck}`} card={i} />
         })}
       </Stack>
+
+      <div className="debug-hand">
+        <p><b>Debug</b></p>
+        <p>{JSON.stringify({
+          point: HandBackend.from(hand).point,
+        })}</p>
+      </div>
     </HandWrapper>
   )
 }

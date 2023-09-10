@@ -64,7 +64,7 @@ class RESTDataSourceAdapter implements DataSourceAdapter {
         email,
         password: pw,
       }),
-    })
+    }, true)
     if (r.ok) {
       return {
         ...r.body.user,
@@ -85,7 +85,7 @@ class RESTDataSourceAdapter implements DataSourceAdapter {
         firstName: email,
         lastName: "Demo",
       }),
-    })
+    }, true)
     if (r.ok) {
       return undefined
     }
