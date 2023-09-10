@@ -113,7 +113,7 @@ export function CardBackTranslateSingle() {
     if (animating) {
       setTimeout(() => {
         setAnimating(false)
-        console.log('{CardBackTranslateSingle > hide} : ', );
+        // console.log('{CardBackTranslateSingle > hide} : ', );
       }, CARD_ANIM_TIME * 1000 + CARD_HIDE_DELAY_MS) // hide after time offset
     }
   }, [animating])

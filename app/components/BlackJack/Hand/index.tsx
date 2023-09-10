@@ -22,10 +22,7 @@ export function Hand(props: Props) {
   const {hand, playerName} = props;
   const {cards, handIdx} = hand;
 
-  // console.info('{Hand} render: debug: ', {
-  //   name: playerName,
-  //   point: HandBackend.from(hand).point,
-  // });
+  console.info('{Hand} debug: ', `${playerName} ${HandBackend.from(hand).point} points`)
 
   return (
     <HandWrapper>
