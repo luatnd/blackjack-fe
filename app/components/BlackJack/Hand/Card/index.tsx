@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import ImgCardBg from "@/assets/img/card-front.png";
 import ImgCardBackBg from "@/assets/img/card-back.webp";
 import {CardVariant, Card} from './model'
+import s from './style.module.css'
 
 const CardWrapper = styled('div')({
   color: "grey",
@@ -30,9 +31,9 @@ export const CardUI = forwardRef((props: Props, ref: any) => {
   return card.backFace
     ? <CardBack /> // don't need to set ref because CardBack is always the 1st card
     : (
-      <CardWrapper ref={ref}>
-        <Typography color={color} fontSize={24}>{card.face}</Typography>
-        <Typography color={color} fontSize={26} lineHeight={0.5}>
+      <CardWrapper ref={ref} className={s.cardWrapper}>
+        <Typography color={color} fontSize={24} className={s.txt}>{card.face}</Typography>
+        <Typography color={color} fontSize={26} className={s.txt} lineHeight={0.5}>
           {varUi}
         </Typography>
         <Box textAlign="center">
@@ -53,10 +54,12 @@ export function CardBack() {
     <CardWrapper
       // ref={ref}
       style={{border: "none", padding: 0}}
+      className={s.cardWrapper}
     >
       <Image
         src={ImgCardBackBg} alt="table"
         width={125} height={175}
+        className={s.backImg}
       />
     </CardWrapper>
   )

@@ -38,13 +38,6 @@ export function Hand(props: Props) {
               ref={(r: any) => NonReactiveData.handRefs[handIdx] = r}
             />
           }
-          else if (idx == 0) {
-            // save ref of the last cards
-            return <CardUI
-              key={`${i.face}_${i.variant}_${i.deck}`} card={i}
-              ref={(r: any) => NonReactiveData.handFirstCardRefs[handIdx] = r}
-            />
-          }
           return <CardUI key={`${i.face}_${i.variant}_${i.deck}`} card={i} />
         })}
       </Stack>

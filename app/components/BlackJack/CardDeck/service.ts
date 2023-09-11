@@ -3,7 +3,8 @@ import {NonReactiveData} from "@/components/BlackJack/non-reactive-data";
 import {getElPosRelativeToViewPort} from "@/utils/DOM";
 
 
-export const CARD_SPACING = 40; // each card start different 40px
+// TODO: Responsive In mobile, it's 24
+export const CARD_SPACING = 45; // each card start different 40px
 /**
  * Get dx, dy of translation in Oxy coordinate
  * Relative to the last card of hands
