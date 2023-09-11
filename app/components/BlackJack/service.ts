@@ -14,6 +14,12 @@ import {isClientDevMode} from "@/utils/env";
 
 export const DEALER_USER_ID = "DEALER"
 
+// there is only 1 writer at a time to this:
+const PlayerAction = {
+  animating: false,
+  hittingOrStaying: false,
+}
+
 type Callback = any;
 export function useMatch(): {
   match: GameMatch | undefined,
@@ -77,14 +83,24 @@ export function useMatch(): {
       return
     }
 
+    if (PlayerAction.animating || PlayerAction.hittingOrStaying) {
+      console.log("Skip")
+      return
+    }
+
+    PlayerAction.hittingOrStaying = true;
     playerHit(match.id).then(async (r) => {
       // update player card
       if (!r) {
         console.error("Cannot get hit info")
+        PlayerAction.hittingOrStaying = false
         return
       }
 
-      if (!!r.error) return;
+      if (!!r.error) {
+        PlayerAction.hittingOrStaying = false;
+        return;
+      }
 
       if (r.status === MatchStatus.Completed) {
         // tmp disable button while anim
@@ -107,6 +123,9 @@ export function useMatch(): {
 
       // update state to reflect the UI after card animation done
       setMatch(r)
+
+      // NOTE: Must ensure this was always been reached, or plz try/catch the above block
+      PlayerAction.hittingOrStaying = false;
     })
   }, [match]);
 
@@ -115,14 +134,24 @@ export function useMatch(): {
       console.error("TODO: notice user that ...")
       return
     }
+    if (PlayerAction.animating || PlayerAction.hittingOrStaying) {
+      console.log("Skip")
+      return
+    }
 
+    PlayerAction.hittingOrStaying = true
     playerStay(match.id).then(async (r) => {
       if (!r) {
         console.error("Cannot get stay info")
+        PlayerAction.hittingOrStaying = false
         return
       }
 
-      if (!!r.error) return;
+      if (!!r.error) {
+        PlayerAction.hittingOrStaying = false
+        return
+      }
+
       // visual: animate new card to user deck
       if (r.status === MatchStatus.Completed) {
         // tmp disable hit/stay button
@@ -140,6 +169,8 @@ export function useMatch(): {
 
       // update state to reflect the UI after card animation done
       setMatch(r)
+
+      PlayerAction.hittingOrStaying = false
     })
   }, [match]);
 
@@ -265,6 +296,7 @@ async function addCardsWithAnimation(
   oldMatch: GameMatch | undefined,
   setMatch: any,
 ) {
+  PlayerAction.animating = true; // lock
   // player often add 1 cards
   // dealer often add multiple cards
   let [oldCards, newCards] = handIdx == 0
@@ -274,11 +306,16 @@ async function addCardsWithAnimation(
   if (!oldCards) oldCards = [];
   if (!newCards) newCards = [];
 
-  for (let i = oldCards.length; i < newCards.length; i++) {
-    const card = newCards[i]
-    await animateAddCardToPlayerHand(handIdx, card, oldMatch, setMatch)
-    await sleep(600); // sleep every time added a card
+  try {
+    for (let i = oldCards.length; i < newCards.length; i++) {
+      const card = newCards[i]
+      await animateAddCardToPlayerHand(handIdx, card, oldMatch, setMatch)
+      await sleep(600); // sleep every time added a card
+    }
+  } catch (e) {
+    console.log('{addCardsWithAnimation} e: ', e);
   }
+  PlayerAction.animating = false;// release lock
 }
 
 // also control the timeline + UI
