@@ -1,18 +1,19 @@
 @media only screen and (max-width: 600px) {
   /* For everything lesser than 600 */
-  .cardWrapper {
+  /* add tag to selector to get higher specificity */
+  div.cardWrapper {
     width: 80px;
     height: 112px;
     margin-left: -48px!important;
   }
-  .cardWrapper:first-child {
+  div.cardWrapper:first-child {
     margin-left: 0!important;
   }
-  .backImg {
+  img.backImg {
     width: 80px;
     height: 112px;
   }
-  .txt {
+  p.txt {
     font-size: 15px;
   }
 }
